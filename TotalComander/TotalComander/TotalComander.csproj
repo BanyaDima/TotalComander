@@ -48,9 +48,11 @@
   <ItemGroup>
     <Compile Include="FileItem.cs" />
     <Compile Include="FolderItem.cs" />
-    <Compile Include="FolderViewLeft.cs" />
-    <Compile Include="FolderViewRight.cs" />
+    <Compile Include="FolderView.cs" />
+    <Compile Include="IWindow.cs" />
+    <Compile Include="RightWindow.cs" />
     <Compile Include="IDirectoryItem.cs" />
+    <Compile Include="LeftWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -12,8 +12,8 @@ namespace TotalComander
         string Name { get; set; }
         long Size { get; set; }
 
-        void Show(ConsoleGraphics graphics, int index);
+        void Show(ConsoleGraphics graphics, int index,int indent,int lineHeight);
 
-        void TextSelection(ConsoleGraphics graphics, int index);
+        void TextSelection(ConsoleGraphics graphics, int index,int indent,int lineHeight);
     }
 }

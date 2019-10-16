@@ -17,15 +17,18 @@ namespace TotalComander
 
             ConsoleGraphics graphics = new ConsoleGraphics();
 
-            FolderViewLeft view = new FolderViewLeft(graphics);
-            FolderViewRight viewRight = new FolderViewRight(graphics);
+            FolderView view = new FolderView(graphics);
+            FolderView folderView = new FolderView(graphics, "D:\\");
+            LeftWindow leftWindow = new LeftWindow(graphics, view);
+            RightWindow rightWindow = new RightWindow(graphics, folderView);
+            
 
             Console.CursorVisible = false;
 
             while (true)
             {
-                view.Show();
-                //viewRight.Show();
+                leftWindow.ShowContents();
+                rightWindow.ShowContents();
                 var key = Console.ReadKey();
 
                 switch (key.Key)

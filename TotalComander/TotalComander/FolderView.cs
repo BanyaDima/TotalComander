@@ -4,66 +4,51 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TotalComander
 {
-    class FolderViewLeft
+    public class FolderView
     {
-        protected string curentFolder;
-        protected int selectedIndex = 0;
+        public int LineHeight { get; private set; }
+        string curentFolder;
+        int selectedIndex = 0;
         List<IDirectoryItem> directoryItems = new List<IDirectoryItem>();
-        protected ConsoleGraphics _graphics;
+        ConsoleGraphics _graphics;
 
-
-        public FolderViewLeft(ConsoleGraphics graphics, string path = @"C:\")
+        public FolderView(ConsoleGraphics graphics, string path = @"C:\")
         {
+            LineHeight = 20;
             curentFolder = path;
             _graphics = graphics;
             InitCurentDir();
         }
 
-        protected IEnumerable<DirectoryInfo> GetDiractory() => Directory.GetDirectories(curentFolder)
+        private IEnumerable<DirectoryInfo> GetDiractory() => Directory.GetDirectories(curentFolder)
                                                                        .Select(s => new DirectoryInfo(s));
-
-        protected IEnumerable<FileInfo> GetFile() => Directory.GetFiles(curentFolder)
+        private IEnumerable<FileInfo> GetFile() => Directory.GetFiles(curentFolder)
                                                                   .Select(a => new FileInfo(a));
-
-        public virtual void Show()
+        public virtual void Show(int indent)
         {
-            DrawDatails();
-
             for (int i = 0; i < directoryItems.Count; i++)
             {
                 if (selectedIndex == i)
                 {
-                    directoryItems[i].TextSelection(_graphics, selectedIndex);
-                    directoryItems[i].Show(_graphics, selectedIndex);
+                    directoryItems[i].TextSelection(_graphics, selectedIndex, indent, LineHeight);
+                    directoryItems[i].Show(_graphics, selectedIndex, indent, LineHeight);
                 }
                 else
                 {
-                    directoryItems[i].Show(_graphics, i);
+                    directoryItems[i].Show(_graphics, i, indent, LineHeight);
                 }
-
             }
             _graphics.FlipPages();
+
+            Thread.Sleep(100);
         }
 
-        private void DrawDatails()
-        {
-            _graphics.FillRectangle(0xff000000, 0, 0, _graphics.ClientWidth, _graphics.ClientHeight);
-
-            _graphics.DrawString("C:\\", "Arial", 0xffffffff, 0, 0, 12);
-            _graphics.DrawString("D:\\", "Arial", 0xffffffff, _graphics.ClientWidth / 2, 0, 12);
-
-            _graphics.DrawLine(0xffffffff, _graphics.ClientHeight, 0, _graphics.ClientHeight, _graphics.ClientWidth);
-            _graphics.DrawLine(0xffffffff, 0, _graphics.ClientHeight - 20, _graphics.ClientWidth, _graphics.ClientWidth - 20);
-            _graphics.DrawLine(0xffffffff, 0, 20, _graphics.ClientWidth, 20);
-
-
-        }
-
-        protected void InitCurentDir()
+        private void InitCurentDir()
         {
             directoryItems.Clear();
             directoryItems.AddRange(GetDiractory()
@@ -86,7 +71,7 @@ namespace TotalComander
         {
             selectedIndex++;
             if (selectedIndex == directoryItems.Count)
-                selectedIndex = directoryItems.Count-1;
+                selectedIndex = directoryItems.Count - 1;
         }
 
         public void MuveUp()
