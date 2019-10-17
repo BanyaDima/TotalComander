@@ -12,5 +12,12 @@ namespace TotalComander
         void ShowContents();
 
         void DrawDatails();
+
+        void InFolder(string folder = "");
+
+        void MuveDown();
+
+        void MuveUp();
+
     }
 }

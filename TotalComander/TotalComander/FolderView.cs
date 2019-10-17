@@ -16,12 +16,14 @@ namespace TotalComander
         int selectedIndex = 0;
         List<IDirectoryItem> directoryItems = new List<IDirectoryItem>();
         ConsoleGraphics _graphics;
+        Message _message;
 
         public FolderView(ConsoleGraphics graphics, string path = @"C:\")
         {
             LineHeight = 20;
             curentFolder = path;
             _graphics = graphics;
+            _message = new Message(graphics);
             InitCurentDir();
         }
 
@@ -50,14 +52,23 @@ namespace TotalComander
 
         private void InitCurentDir()
         {
-            directoryItems.Clear();
-            directoryItems.AddRange(GetDiractory()
-                          .Select(a => new FolderItem() { Name = a.Name }));
+            try
+            {               
+                directoryItems.Clear();
+                directoryItems.AddRange(GetDiractory()
+                              .Select(a => new FolderItem() { Name = a.Name }));
 
-            directoryItems.AddRange(GetFile()
-                          .Select(a => new FileItem() { Name = a.Name, Size = a.Length, Extansion = a.Extension }));
+                directoryItems.AddRange(GetFile()
+                              .Select(a => new FileItem() { Name = a.Name, Size = a.Length, Extansion = a.Extension }));
 
-            selectedIndex = 0;
+                selectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                _message.ShowMessage($"{ex.Message}");
+                
+                InFolder("..");
+            }            
         }
 
         public void InFolder(string folder = "")
@@ -77,7 +88,6 @@ namespace TotalComander
         public void MuveUp()
         {
             selectedIndex--;
-
             if (selectedIndex < 0)
                 selectedIndex = 0;
         }
