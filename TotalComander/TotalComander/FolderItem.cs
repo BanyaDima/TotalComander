@@ -12,6 +12,7 @@ namespace TotalComander
     {
         public string Name { get; set; }
         public long Size { get; set; }
+        public string SoursePath { get; set; }
 
         public void Show(ConsoleGraphics graphics, int index, int indent, int lineHeight)
         {

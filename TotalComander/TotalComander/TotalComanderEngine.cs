@@ -18,6 +18,7 @@ namespace TotalComander
 
             Window leftWindow = new Window(graphics, viewLeftWindow, 0);
             Window rightWindow = new Window(graphics, viewRightWindow, graphics.ClientWidth / 2 + 2);
+           
 
             IWindow activWindow = leftWindow;
             
@@ -48,19 +49,24 @@ namespace TotalComander
                     case ConsoleKey.DownArrow:
                         activWindow.MuveDown();
                         break;
-                    case ConsoleKey.F1:                        
+                    case ConsoleKey.F1:
+                       viewRightWindow.Copy();
                         break;
                     case ConsoleKey.F2:
+                        viewRightWindow.Cut();
                         break;
                     case ConsoleKey.F3:
+                        viewRightWindow.Paste();
                         break;
                     case ConsoleKey.F4:
+                        viewRightWindow.ListOfDisks();
                         break;
                     case ConsoleKey.F5:
                         break;
                     case ConsoleKey.F6:
                         break;
                     case ConsoleKey.F7:
+                        viewRightWindow.CriateFolder();
                         break;
                     case ConsoleKey.F8:
                         break;
