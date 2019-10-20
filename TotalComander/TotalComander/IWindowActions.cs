@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 
 namespace TotalComander
 {
-    interface IWindow
+    interface IWindowActions
     {
         void ShowContents();
-
-        void DrawDatails();
-
         void InFolder(string folder = "");
-
         void MuveDown();
-
         void MuveUp();
-
+        void Copy();
+        void Cut();
+        void Rename();
+        void Paste();
+        void ListOfDisks();
+        void CriateFolder();
+        void Properties();
     }
 }

@@ -11,17 +11,9 @@ namespace TotalComander
     {
         static void Main(string[] args)
         {
-            Console.WindowWidth = 120;
-            Console.WindowHeight = 40;
-            Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
+            TotalComanderEngine totalComander = new TotalComanderEngine();
 
-            Console.CursorVisible = false;
-
-           
-            TotalComanderEngine handler = new TotalComanderEngine();
-
-            handler.Start();
-
+            totalComander.Start();
         }
     }
 }

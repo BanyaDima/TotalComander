@@ -9,73 +9,79 @@ namespace TotalComander
 {
     public class TotalComanderEngine
     {
+        ConsoleGraphics _graphics;
+        FolderActions _viewLeftWindow;
+        FolderActions _viewRightWindow;
+        Window _leftWindow;
+        Window _rightWindow;
+        IWindowActions _activWindow;
+
+        public TotalComanderEngine()
+        {
+            Console.WindowWidth = 120;
+            Console.WindowHeight = 40;
+            Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
+            Console.CursorVisible = false;
+
+            _graphics = new ConsoleGraphics();
+            _viewLeftWindow = new FolderActions(_graphics);
+            _viewRightWindow = new FolderActions(_graphics, "D:\\");
+            _leftWindow = new Window(_graphics, _viewLeftWindow, 0);
+            _rightWindow = new Window(_graphics, _viewRightWindow, _graphics.ClientWidth / 2 + 2);
+        }
+
         public void Start()
         {
-            ConsoleGraphics graphics = new ConsoleGraphics();            
-
-            FolderView viewLeftWindow = new FolderView(graphics);
-            FolderView viewRightWindow = new FolderView(graphics, "D:\\");
-
-            Window leftWindow = new Window(graphics, viewLeftWindow, 0);
-            Window rightWindow = new Window(graphics, viewRightWindow, graphics.ClientWidth / 2 + 2);
-           
-
-            IWindow activWindow = leftWindow;
-            
+            _activWindow = _leftWindow;
 
             while (true)
-            {            
-                rightWindow.ShowContents();
-                leftWindow.ShowContents();
-                                
-                var key = Console.ReadKey();
+            {
+                _leftWindow.ShowContents();
+                _rightWindow.ShowContents();
 
-                
+                var key = Console.ReadKey();
 
                 switch (key.Key)
                 {
                     case ConsoleKey.Tab:
-                        activWindow = leftWindow == activWindow ? (IWindow)rightWindow : (IWindow)leftWindow;                        
+                        _activWindow = _leftWindow == _activWindow ? (IWindowActions)_rightWindow : (IWindowActions)_leftWindow;
                         break;
                     case ConsoleKey.Enter:
-                        activWindow.InFolder();
+                        _activWindow.InFolder();
                         break;
                     case ConsoleKey.Backspace:
-                        activWindow.InFolder("..");
+                        _activWindow.InFolder("..");
                         break;
                     case ConsoleKey.UpArrow:
-                        activWindow.MuveUp();
+                        _activWindow.MuveUp();
                         break;
                     case ConsoleKey.DownArrow:
-                        activWindow.MuveDown();
+                        _activWindow.MuveDown();
                         break;
                     case ConsoleKey.F1:
-                       viewRightWindow.Copy();
+                        _activWindow.Copy();
                         break;
                     case ConsoleKey.F2:
-                        viewRightWindow.Cut();
+                        _activWindow.Cut();
                         break;
-                    case ConsoleKey.F3:
-                        viewRightWindow.Paste();
+                    case ConsoleKey.F3:                      
+                        _activWindow.Paste();
                         break;
                     case ConsoleKey.F4:
-                        viewRightWindow.ListOfDisks();
+                       // _activWindow.ListOfDisks();
                         break;
                     case ConsoleKey.F5:
+                        _activWindow.Properties();
                         break;
                     case ConsoleKey.F6:
+                        _activWindow.Rename();
                         break;
                     case ConsoleKey.F7:
-                        viewRightWindow.CriateFolder();
-                        break;
-                    case ConsoleKey.F8:
-                        break;
-                    case ConsoleKey.F9:
+                        _activWindow.CriateFolder();
                         break;
                     default:
                         break;
                 }
-                Console.Clear();
             }
         }
     }

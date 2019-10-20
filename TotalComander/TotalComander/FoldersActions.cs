@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace TotalComander
 {
-    public class FolderView
+    public class FolderActions
     {
         public int LineHeight { get; private set; }
         private string _curentFolder;
         private string _sourcePath;
         private int _selectedIndex = 0;
+        private char _lastKeyPress;
         private string _nameFileOrDirectory = "";
         List<IDirectoryItem> directoryItems = new List<IDirectoryItem>();
         ConsoleGraphics _graphics;
         Message _message;
 
-
-        public FolderView(ConsoleGraphics graphics, string path = "C:\\")
+        public FolderActions(ConsoleGraphics graphics, string path = "C:\\")
         {
             LineHeight = 20;
             _curentFolder = path;
@@ -69,7 +69,7 @@ namespace TotalComander
             }
             catch (Exception ex)
             {
-                _message.ShowMessage($"{ex.Message}");
+                _message.ShowMessage($"{ex.Message}", LineHeight);
 
                 InFolder("..");
             }
@@ -119,28 +119,82 @@ namespace TotalComander
             Console.ReadKey();
         }
 
-        public void Rename() { }
+        public void Rename()
+        {
+            _sourcePath = directoryItems[_selectedIndex].SoursePath;
 
-        public void Copy() { }
+            _graphics.FillRectangle(0xff000000, 0, LineHeight, _graphics.ClientWidth / 2, _graphics.ClientHeight - LineHeight * 2);
+            _graphics.FlipPages();
+
+            Console.CursorVisible = true;
+
+            Console.Write("\n\nEnter new Name:");
+            string newName = Console.ReadLine();
+            string targetPaht = Path.Combine(_curentFolder, newName);
+
+            if (File.Exists(targetPaht))
+            {
+                _message.ShowMessage("Such name already exists! Try again...", LineHeight);
+            }
+            else
+            {
+                if (File.Exists(_sourcePath))
+                {
+                    string extention = Path.GetExtension(_sourcePath);
+                    newName = $"{newName}{extention}";
+                    targetPaht = Path.Combine(_curentFolder, newName);
+
+                    File.Move(_sourcePath, targetPaht);
+                }
+                else
+                {
+                    Directory.Move(_sourcePath, targetPaht);
+                }
+            }
+            Console.CursorVisible = false;
+
+            InitCurentDir();
+        }
+
+        public void Copy()
+        {
+            _lastKeyPress = (char)Keys.F1;
+            _sourcePath = directoryItems[_selectedIndex].SoursePath;
+            _nameFileOrDirectory = directoryItems[_selectedIndex].Name;
+        }
 
         public void Cut()
         {
+            _lastKeyPress = (char)Keys.F2;
             _sourcePath = directoryItems[_selectedIndex].SoursePath;
             _nameFileOrDirectory = directoryItems[_selectedIndex].Name;
-
         }
 
         public void Paste()
         {
-            var targetPaht = Path.Combine(_curentFolder, _nameFileOrDirectory);
+            string targetPaht = Path.Combine(_curentFolder, _nameFileOrDirectory);
 
-            if (File.Exists(_sourcePath))
+            try
             {
-                File.Move(_sourcePath, targetPaht);
+                if (File.Exists(_sourcePath) && _sourcePath != null && _nameFileOrDirectory != null)
+                {
+                    if (_lastKeyPress == (char)Keys.F1)
+                        File.Copy(_sourcePath, targetPaht);
+                    else
+                        File.Move(_sourcePath, targetPaht);
+                }
+                else if (_sourcePath != null && _nameFileOrDirectory != null)
+                {
+                    if (_lastKeyPress == (char)Keys.F1)
+                        CopyDir();
+                        //Directory.Move(_sourcePath, targetPaht);
+                }
+
+                InitCurentDir();
             }
-            else
+            catch (Exception ex)
             {
-                Directory.Move(_sourcePath, targetPaht);
+                _message.ShowMessage($"{ex.Message}", LineHeight);
             }
         }
 
@@ -168,5 +222,46 @@ namespace TotalComander
             InitCurentDir();
         }
 
+        public void Properties()
+        {
+            _sourcePath = directoryItems[_selectedIndex].SoursePath;
+            try
+            {
+                if (File.Exists(_sourcePath))
+                {
+                    _message.ShowMessage($"Name: {Path.GetFileName(_sourcePath)}\nRoot directori: {Path.GetPathRoot(_sourcePath)}\n" +
+                                         $"Last access time: {File.GetLastAccessTime(_sourcePath)}\nLast write time: { File.GetLastWriteTime(_sourcePath)}\n" +
+                                         $"Size: {directoryItems[_selectedIndex].Size} byte", LineHeight);
+                }
+                else
+                {
+                    _message.ShowMessage($"Name: {directoryItems[_selectedIndex].Name}\nRoot directori: {Path.GetPathRoot(_sourcePath)}\n" +
+                                         $"Last read time: {Directory.GetLastAccessTime(_sourcePath)}\nLast write time: {Directory.GetLastWriteTime(_sourcePath)}\n" +
+                                         $"Size: {Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories).Sum(t => (new FileInfo(t).Length))} byte\n" +
+                                         $"Files: {Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories).Count()}\n" +
+                                         $"Directoris: {Directory.GetDirectories(_sourcePath, "*", SearchOption.AllDirectories).Count()}", LineHeight);
+                }
+            }
+            catch (Exception ex)
+            {
+                _message.ShowMessage($"{ex.Message}", LineHeight);
+
+            }
+        }
+
+
+
+        public void CopyDir()
+        {
+            
+
+            var dirs = Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories);
+
+            for (int i = 0; i < dirs.Length; i++)
+            {
+                var newPath = Path.Combine(_curentFolder, dirs[i]);
+                File.Copy(_sourcePath, newPath);
+            }
+        }
     }
 }

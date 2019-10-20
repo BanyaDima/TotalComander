@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace TotalComander
 {
-    public class Window : IWindow
+    public class Window : IWindowActions
     {
         public int Indent { get; private set; }
         ConsoleGraphics _graphic;
-        FolderView _view;
+        FolderActions _view;
 
-        public Window(ConsoleGraphics graphics, FolderView view, int ident)
+        public Window(ConsoleGraphics graphics, FolderActions view, int ident)
         {
             _graphic = graphics;
             _view = view;
@@ -27,7 +27,7 @@ namespace TotalComander
             _view.Show(Indent);
         }
 
-        public void DrawDatails()
+        private void DrawDatails()
         {
             _graphic.FillRectangle(0xff000000, Indent, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight);
             _graphic.FillRectangle(0xff000000, Indent + 1, 0, (_graphic.ClientWidth / 2), _graphic.ClientHeight);
@@ -40,23 +40,28 @@ namespace TotalComander
             _graphic.DrawLine(0xffffffff, _graphic.ClientWidth / 2, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight - _view.LineHeight);
             _graphic.DrawLine(0xffffffff, 0, _graphic.ClientHeight - _view.LineHeight, _graphic.ClientWidth, _graphic.ClientHeight - _view.LineHeight);
             _graphic.DrawLine(0xffffffff, 0, _view.LineHeight - 1, _graphic.ClientWidth, _view.LineHeight - 1);
+
+
         }
 
-        public void InFolder(string folder = "")
-        {
-            _view.InFolder(folder);
-        }
+        public void InFolder(string folder = "") => _view.InFolder(folder);
 
-        public void MuveDown()
-        {
-            _view.MuveDown();
-        }
+        public void MuveDown() => _view.MuveDown();
 
-        public void MuveUp()
-        {
-            _view.MuveUp();
-        }
+        public void MuveUp() => _view.MuveUp();
 
+        public void Copy() => _view.Copy();
 
+        public void Cut() => _view.Cut();
+
+        public void Rename() => _view.Rename();
+
+        public void Paste() => _view.Paste();
+
+        public void ListOfDisks() => _view.ListOfDisks();
+
+        public void CriateFolder() => _view.CriateFolder();
+
+        public void Properties() => _view.Properties();
     }
 }
