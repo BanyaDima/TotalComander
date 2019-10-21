@@ -11,57 +11,58 @@ namespace TotalComander
     {
         public int Indent { get; private set; }
         ConsoleGraphics _graphic;
-        FolderActions _view;
+        FolderActions _actions;
 
         public Window(ConsoleGraphics graphics, FolderActions view, int ident)
         {
             _graphic = graphics;
-            _view = view;
+            _actions = view;
             Indent = ident;
         }
 
         public void ShowContents()
         {
-            DrawDatails();
-
-            _view.Show(Indent);
+            DrawDatails(_actions.DiscName);
+            _actions.Show(Indent);
         }
 
-        private void DrawDatails()
+        private void DrawDatails(string diskName)
         {
-            _graphic.FillRectangle(0xff000000, Indent, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight);
             _graphic.FillRectangle(0xff000000, Indent + 1, 0, (_graphic.ClientWidth / 2), _graphic.ClientHeight);
 
-            _graphic.DrawString("C:\\", "Arial", 0xffffffff, 0, 0, 12);
-            _graphic.DrawString("D:\\", "Arial", 0xffffffff, _graphic.ClientWidth / 2, 0, 12);
+            _graphic.DrawString($"{diskName}", "Arial", 0xffffffff, Indent, 0, 12);
             _graphic.DrawString("F1-copy  :  F2-cut  :  F3-paste  :  F4-list of disks  :  F5-properties  :  F6-rename  :  F7-criate folder",
-                                                            "Arial", 0xffffffff, 0, _graphic.ClientHeight - _view.LineHeight, 10);
+                                                            "Arial", 0xffffffff, 0, _graphic.ClientHeight - _actions.LineHeight, 10);
 
-            _graphic.DrawLine(0xffffffff, _graphic.ClientWidth / 2, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight - _view.LineHeight);
-            _graphic.DrawLine(0xffffffff, 0, _graphic.ClientHeight - _view.LineHeight, _graphic.ClientWidth, _graphic.ClientHeight - _view.LineHeight);
-            _graphic.DrawLine(0xffffffff, 0, _view.LineHeight - 1, _graphic.ClientWidth, _view.LineHeight - 1);
-
-
+            _graphic.DrawLine(0xffffffff, _graphic.ClientWidth / 2, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight - _actions.LineHeight);
+            _graphic.DrawLine(0xffffffff, 0, _graphic.ClientHeight - _actions.LineHeight, _graphic.ClientWidth, _graphic.ClientHeight - _actions.LineHeight);
+            _graphic.DrawLine(0xffffffff, 0, _actions.LineHeight - 1, _graphic.ClientWidth, _actions.LineHeight - 1);
         }
 
-        public void InFolder(string folder = "") => _view.InFolder(folder);
+        public void HideWindow()
+        {
+            _graphic.FillRectangle(0xff615f5d, Indent, 0, _graphic.ClientWidth / 2, _graphic.ClientHeight);
+            _actions.Show(Indent);
+        }
 
-        public void MuveDown() => _view.MuveDown();
+        public void InFolder(string folder = "") => _actions.InFolder(folder);
 
-        public void MuveUp() => _view.MuveUp();
+        public void MuveDown() => _actions.MuveDown();
 
-        public void Copy() => _view.Copy();
+        public void MuveUp() => _actions.MuveUp();
 
-        public void Cut() => _view.Cut();
+        public void Copy() => _actions.Copy();
 
-        public void Rename() => _view.Rename();
+        public void Cut() => _actions.Cut();
 
-        public void Paste() => _view.Paste();
+        public void Rename() => _actions.Rename(Indent);
 
-        public void ListOfDisks() => _view.ListOfDisks();
+        public void Paste() => _actions.Paste(Indent);
 
-        public void CriateFolder() => _view.CriateFolder();
+        public void ListOfDisks() => _actions.ListOfDisks(Indent);
 
-        public void Properties() => _view.Properties();
+        public void CriateFolder() => _actions.CriateFolder();
+
+        public void Properties() => _actions.Properties(Indent);
     }
 }

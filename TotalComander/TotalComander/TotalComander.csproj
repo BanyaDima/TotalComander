@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DiskItem.cs" />
     <Compile Include="TotalComanderEngine.cs" />
     <Compile Include="FileItem.cs" />
     <Compile Include="FolderItem.cs" />

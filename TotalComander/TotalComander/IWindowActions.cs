@@ -10,6 +10,7 @@ namespace TotalComander
     interface IWindowActions
     {
         void ShowContents();
+        void HideWindow();
         void InFolder(string folder = "");
         void MuveDown();
         void MuveUp();

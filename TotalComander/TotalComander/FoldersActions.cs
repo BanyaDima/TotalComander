@@ -12,12 +12,14 @@ namespace TotalComander
     public class FolderActions
     {
         public int LineHeight { get; private set; }
+        public string DiscName { get; private set; }
         private string _curentFolder;
         private string _sourcePath;
         private int _selectedIndex = 0;
         private char _lastKeyPress;
         private string _nameFileOrDirectory = "";
         List<IDirectoryItem> directoryItems = new List<IDirectoryItem>();
+        List<DiskItem> driveItems = new List<DiskItem>();
         ConsoleGraphics _graphics;
         Message _message;
 
@@ -27,6 +29,7 @@ namespace TotalComander
             _curentFolder = path;
             _graphics = graphics;
             _message = new Message(graphics);
+            DiscName = _curentFolder;
             InitCurentDir();
         }
 
@@ -34,6 +37,7 @@ namespace TotalComander
                                                                        .Select(s => new DirectoryInfo(s));
         private IEnumerable<FileInfo> GetFile() => Directory.GetFiles(_curentFolder)
                                                                   .Select(a => new FileInfo(a));
+
         public virtual void Show(int indent)
         {
             for (int i = 0; i < directoryItems.Count; i++)
@@ -42,7 +46,6 @@ namespace TotalComander
                 {
                     directoryItems[i].TextSelection(_graphics, _selectedIndex, indent, LineHeight);
                     directoryItems[i].Show(_graphics, _selectedIndex, indent, LineHeight);
-
                 }
                 else
                 {
@@ -50,7 +53,6 @@ namespace TotalComander
                 }
             }
             _graphics.FlipPages();
-
             Thread.Sleep(100);
         }
 
@@ -69,8 +71,7 @@ namespace TotalComander
             }
             catch (Exception ex)
             {
-                _message.ShowMessage($"{ex.Message}", LineHeight);
-
+                _message.ShowMessage($"{ex.Message}", 0);
                 InFolder("..");
             }
         }
@@ -96,35 +97,66 @@ namespace TotalComander
                 _selectedIndex = 0;
         }
 
-        public void ListOfDisks()
+        public void ListOfDisks(int indent)
         {
-            _graphics.FillRectangle(0xff000000, 0, 0, _graphics.ClientWidth / 2, _graphics.ClientHeight);
 
-            _graphics.FlipPages();
             DriveInfo[] drives = DriveInfo.GetDrives();
+            driveItems.Clear();
+            driveItems.AddRange(drives.Select(d => new DiskItem() { Name = d.Name, IsReady = d.IsReady }));
+            _selectedIndex = 0;
 
-            foreach (DriveInfo drive in drives)
+            while (!Input.IsKeyDown(Keys.RETURN))
             {
-                Console.WriteLine($"Название: {drive.Name}");
-                Console.WriteLine($"Тип: {drive.DriveType}");
-                if (drive.IsReady)
-                {
-                    Console.WriteLine($"Объем диска: {drive.TotalSize}");
-                    Console.WriteLine($"Свободное пространство: {drive.TotalFreeSpace}");
-                    Console.WriteLine($"Метка: {drive.VolumeLabel}");
-                }
-                Console.WriteLine();
-            }
+                ShowListDisks(indent);
 
-            Console.ReadKey();
+                var key = Console.ReadKey();
+
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        MuveUp();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        MuveDown();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (!driveItems[_selectedIndex].IsReady)
+            {
+                _message.ShowMessage("Disk is not ready for use...Select another drive!", indent);
+                ListOfDisks(indent);
+            }
+            InitCurentDir();
         }
 
-        public void Rename()
+        private void ShowListDisks(int indent)
+        {
+            _message.MessageHalper(indent);
+
+            for (int i = 0; i < driveItems.Count; i++)
+            {
+                if (_selectedIndex == i)
+                {
+                    driveItems[i].TextSelection(_graphics, _selectedIndex, indent, LineHeight);
+                    driveItems[i].Show(_graphics, _selectedIndex, indent, LineHeight);
+                    _curentFolder = driveItems[i].Name;
+                    DiscName = driveItems[i].Name;
+                }
+                else
+                {
+                    driveItems[i].Show(_graphics, i, indent, LineHeight);
+                }
+            }
+            _graphics.FlipPages();
+        }
+
+        public void Rename(int indent)
         {
             _sourcePath = directoryItems[_selectedIndex].SoursePath;
 
-            _graphics.FillRectangle(0xff000000, 0, LineHeight, _graphics.ClientWidth / 2, _graphics.ClientHeight - LineHeight * 2);
-            _graphics.FlipPages();
+            _message.MessageHalper(indent);
 
             Console.CursorVisible = true;
 
@@ -134,7 +166,7 @@ namespace TotalComander
 
             if (File.Exists(targetPaht))
             {
-                _message.ShowMessage("Such name already exists! Try again...", LineHeight);
+                _message.ShowMessage("Such name already exists! Try again...", indent);
             }
             else
             {
@@ -152,7 +184,6 @@ namespace TotalComander
                 }
             }
             Console.CursorVisible = false;
-
             InitCurentDir();
         }
 
@@ -170,31 +201,72 @@ namespace TotalComander
             _nameFileOrDirectory = directoryItems[_selectedIndex].Name;
         }
 
-        public void Paste()
+        public void Paste(int indent)
         {
             string targetPaht = Path.Combine(_curentFolder, _nameFileOrDirectory);
-
             try
             {
                 if (File.Exists(_sourcePath) && _sourcePath != null && _nameFileOrDirectory != null)
                 {
                     if (_lastKeyPress == (char)Keys.F1)
+                    {
+                        _message.MessageCopy(indent);
                         File.Copy(_sourcePath, targetPaht);
+                        _message.ShowMessage("Copying completed!", indent);
+                    }
                     else
+                    {
+                        _message.MessageCopy(indent);
                         File.Move(_sourcePath, targetPaht);
+                        _message.ShowMessage("Copying completed!", indent);
+                    }
                 }
                 else if (_sourcePath != null && _nameFileOrDirectory != null)
                 {
                     if (_lastKeyPress == (char)Keys.F1)
-                        CopyDir();
-                        //Directory.Move(_sourcePath, targetPaht);
-                }
+                    {
+                        DirectoryInfo diSource = new DirectoryInfo(_sourcePath);
+                        DirectoryInfo diTarget = new DirectoryInfo(targetPaht);
 
+                        _message.MessageCopy(indent);
+                        CopyDir(diSource, diTarget, indent);
+                        _message.ShowMessage("Copying completed!", indent);
+                    }
+                    else
+                    {
+                        _message.MessageCopy(indent);
+                        Directory.Move(_sourcePath, targetPaht);
+                        _message.ShowMessage("Copying completed!", indent);
+                    }
+                }
                 InitCurentDir();
             }
             catch (Exception ex)
             {
-                _message.ShowMessage($"{ex.Message}", LineHeight);
+                _message.ShowMessage($"{ex.Message}", indent);
+            }
+        }
+
+        private void CopyDir(DirectoryInfo source, DirectoryInfo target, int indent)
+        {
+            try
+            {
+                Directory.CreateDirectory(target.FullName);
+
+                foreach (FileInfo file in source.GetFiles())
+                {
+                    file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+                }
+
+                foreach (DirectoryInfo subDir in source.GetDirectories())
+                {
+                    DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
+                    CopyDir(subDir, nextTargetSubDir, indent);
+                }
+            }
+            catch (Exception ex)
+            {
+                _message.ShowMessage($"{ex.Message}", indent);
             }
         }
 
@@ -202,8 +274,7 @@ namespace TotalComander
         {
             int _folderCounter = 0;
             string folderName = "New Folder";
-
-            var targetPath = Path.Combine(_curentFolder, folderName);
+            string targetPath = Path.Combine(_curentFolder, folderName);
 
             if (Directory.Exists(targetPath))
             {
@@ -218,11 +289,10 @@ namespace TotalComander
             _folderCounter = 0;
 
             Directory.CreateDirectory(targetPath);
-
             InitCurentDir();
         }
 
-        public void Properties()
+        public void Properties(int indent)
         {
             _sourcePath = directoryItems[_selectedIndex].SoursePath;
             try
@@ -231,7 +301,7 @@ namespace TotalComander
                 {
                     _message.ShowMessage($"Name: {Path.GetFileName(_sourcePath)}\nRoot directori: {Path.GetPathRoot(_sourcePath)}\n" +
                                          $"Last access time: {File.GetLastAccessTime(_sourcePath)}\nLast write time: { File.GetLastWriteTime(_sourcePath)}\n" +
-                                         $"Size: {directoryItems[_selectedIndex].Size} byte", LineHeight);
+                                         $"Size: {directoryItems[_selectedIndex].Size} byte", indent);
                 }
                 else
                 {
@@ -239,28 +309,12 @@ namespace TotalComander
                                          $"Last read time: {Directory.GetLastAccessTime(_sourcePath)}\nLast write time: {Directory.GetLastWriteTime(_sourcePath)}\n" +
                                          $"Size: {Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories).Sum(t => (new FileInfo(t).Length))} byte\n" +
                                          $"Files: {Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories).Count()}\n" +
-                                         $"Directoris: {Directory.GetDirectories(_sourcePath, "*", SearchOption.AllDirectories).Count()}", LineHeight);
+                                         $"Directoris: {Directory.GetDirectories(_sourcePath, "*", SearchOption.AllDirectories).Count()}", indent);
                 }
             }
             catch (Exception ex)
             {
-                _message.ShowMessage($"{ex.Message}", LineHeight);
-
-            }
-        }
-
-
-
-        public void CopyDir()
-        {
-            
-
-            var dirs = Directory.GetFiles(_sourcePath, "*", SearchOption.AllDirectories);
-
-            for (int i = 0; i < dirs.Length; i++)
-            {
-                var newPath = Path.Combine(_curentFolder, dirs[i]);
-                File.Copy(_sourcePath, newPath);
+                _message.ShowMessage($"{ex.Message}", indent);
             }
         }
     }

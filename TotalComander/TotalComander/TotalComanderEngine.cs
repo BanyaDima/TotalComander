@@ -10,11 +10,12 @@ namespace TotalComander
     public class TotalComanderEngine
     {
         ConsoleGraphics _graphics;
-        FolderActions _viewLeftWindow;
-        FolderActions _viewRightWindow;
+        FolderActions _leftFolderActions;
+        FolderActions _rightFolderActions;
         Window _leftWindow;
         Window _rightWindow;
         IWindowActions _activWindow;
+        IWindowActions _inactiveWindow;
 
         public TotalComanderEngine()
         {
@@ -24,27 +25,28 @@ namespace TotalComander
             Console.CursorVisible = false;
 
             _graphics = new ConsoleGraphics();
-            _viewLeftWindow = new FolderActions(_graphics);
-            _viewRightWindow = new FolderActions(_graphics, "D:\\");
-            _leftWindow = new Window(_graphics, _viewLeftWindow, 0);
-            _rightWindow = new Window(_graphics, _viewRightWindow, _graphics.ClientWidth / 2 + 2);
+            _leftFolderActions = new FolderActions(_graphics);
+            _rightFolderActions = new FolderActions(_graphics);
+            _leftWindow = new Window(_graphics, _leftFolderActions, 0);
+            _rightWindow = new Window(_graphics, _rightFolderActions, _graphics.ClientWidth / 2 + 2);
         }
 
         public void Start()
         {
             _activWindow = _leftWindow;
+            _inactiveWindow = _rightWindow;
 
             while (true)
             {
-                _leftWindow.ShowContents();
-                _rightWindow.ShowContents();
+                _inactiveWindow.HideWindow();
+                _activWindow.ShowContents();
 
                 var key = Console.ReadKey();
 
                 switch (key.Key)
                 {
                     case ConsoleKey.Tab:
-                        _activWindow = _leftWindow == _activWindow ? (IWindowActions)_rightWindow : (IWindowActions)_leftWindow;
+                        ChangeActivWindow();
                         break;
                     case ConsoleKey.Enter:
                         _activWindow.InFolder();
@@ -64,11 +66,11 @@ namespace TotalComander
                     case ConsoleKey.F2:
                         _activWindow.Cut();
                         break;
-                    case ConsoleKey.F3:                      
+                    case ConsoleKey.F3:
                         _activWindow.Paste();
                         break;
                     case ConsoleKey.F4:
-                       // _activWindow.ListOfDisks();
+                        _activWindow.ListOfDisks();
                         break;
                     case ConsoleKey.F5:
                         _activWindow.Properties();
@@ -82,6 +84,20 @@ namespace TotalComander
                     default:
                         break;
                 }
+            }
+        }
+
+        private void ChangeActivWindow()
+        {
+            if (_leftWindow == _activWindow)
+            {
+                _activWindow = (IWindowActions)_rightWindow;
+                _inactiveWindow = (IWindowActions)_leftWindow;
+            }
+            else
+            {
+                _activWindow = (IWindowActions)_leftWindow;
+                _inactiveWindow = (IWindowActions)_rightWindow;
             }
         }
     }
